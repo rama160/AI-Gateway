@@ -1,3 +1,11 @@
+## Latest CI blocker fixed
+
+GitHub Actions previously stopped at `actions/setup-node@v4` because `cache: npm` requires `package-lock.json`, `npm-shrinkwrap.json`, or `yarn.lock`, while this Gateway repository intentionally did not yet contain a lock file.
+
+The CI workflow was minimally changed to remove npm caching and use `npm install --no-audit --no-fund`. Runtime source code was not changed.
+
+**Verification:** The workflow configuration has been updated locally; GitHub Actions still needs to be run after pushing this package.
+
 # AI START HERE — FinChat AI Gateway
 
 ## Project role

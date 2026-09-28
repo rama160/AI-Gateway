@@ -52,3 +52,7 @@ See `docs/SETUP.md`, `docs/ARCHITECTURE.md`, and `docs/ROADMAP.md` for the stage
 ## GitHub Sync
 
 Gunakan satu file `GITHUB.bat`. Script akan otomatis mendeteksi apakah folder ini sudah merupakan Git repository. Jika belum, script menjalankan mode upload awal; jika sudah, script menjalankan mode update, pull --rebase, commit perubahan, dan push. Jika terjadi konflik Git, script berhenti agar konflik diselesaikan manual.
+## CI note
+
+GitHub Actions installs Node dependencies with `npm install --no-audit --no-fund`. The CI workflow does not use npm dependency caching because the repository does not currently commit a lock file.
+

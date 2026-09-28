@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — CI dependency install fix
+- Fixed GitHub Actions failure caused by `setup-node` npm caching requiring a lock file that was not present in the repository.
+- CI now installs dependencies with `npm install --no-audit --no-fund` and does not request npm cache metadata.
+- No application/runtime source code or architecture was changed.
+
 ## 0.1.0 - Gateway foundation
 
 - Added separate FinChat AI Gateway repository.
