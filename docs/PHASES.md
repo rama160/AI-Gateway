@@ -10,3 +10,5 @@
 8. Android integration
 9. Production hardening
 10. Final end-to-end QA
+
+CI dependency resolution fix is tracked as a Phase 0 foundation maintenance item; runtime stages remain unchanged.

@@ -22,3 +22,10 @@
 - Runtime code: unchanged.
 - CI verification: pending next GitHub Actions run.
 
+
+## Dependency version fix — 2026-09-28
+- Status: implemented.
+- Cause: `@cloudflare/workers-types@^4.20260920.0` requested a non-existent npm version.
+- Change: pinned `@cloudflare/workers-types` to published version `5.20260928.1`.
+- Runtime source: unchanged.
+- CI verification: pending next GitHub Actions run.

@@ -1,10 +1,13 @@
 ## Latest CI blocker fixed
 
+The next CI run exposed a second dependency issue: `@cloudflare/workers-types@^4.20260920.0` did not resolve because that requested version does not exist in the npm registry. The dependency is now pinned to the published `5.20260928.1` release. This is a dependency/configuration fix only; runtime source code is unchanged.
+
+
 GitHub Actions previously stopped at `actions/setup-node@v4` because `cache: npm` requires `package-lock.json`, `npm-shrinkwrap.json`, or `yarn.lock`, while this Gateway repository intentionally did not yet contain a lock file.
 
 The CI workflow was minimally changed to remove npm caching and use `npm install --no-audit --no-fund`. Runtime source code was not changed.
 
-**Verification:** The workflow configuration has been updated locally; GitHub Actions still needs to be run after pushing this package.
+**Verification:** The published npm registry was checked for the Workers Types release. GitHub Actions still needs to be run after pushing this package. Local npm installation was attempted but did not complete within the local command timeout.
 
 # AI START HERE — FinChat AI Gateway
 

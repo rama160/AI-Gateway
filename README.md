@@ -56,3 +56,8 @@ Gunakan satu file `GITHUB.bat`. Script akan otomatis mendeteksi apakah folder in
 
 GitHub Actions installs Node dependencies with `npm install --no-audit --no-fund`. The CI workflow does not use npm dependency caching because the repository does not currently commit a lock file.
 
+
+
+## CI dependency baseline
+
+The repository currently uses `npm install --no-audit --no-fund` in GitHub Actions because no npm lock file is committed. `@cloudflare/workers-types` is pinned to the published `5.20260928.1` release.
