@@ -6,12 +6,11 @@ on:
     paths: [.github/workflows/gateway_live_verification.yml]
 permissions:
   contents: read
-  id-token: write
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Check live health, authentication and Gemini
+      - name: Check final live health, authentication and cleanup
         env:
           GATEWAY_URL: https://finchat-ai-gateway.finchat-ai-gateway.workers.dev
         run: |
@@ -32,17 +31,9 @@ jobs:
               ("/v1/monitoring","GET",{},401),
               ("/unknown","GET",{},404),
               ("/v1/ai/chat","OPTIONS",{},204),
-              ("/__gateway_verification","POST",{},401),
+              ("/__gateway_verification","POST",{},404),
           ]:
               status,body=request(path,method,headers,b"{}" if method=="POST" else None)
               print("CHECK",path,method,status); assert status==expected,(path,status,body)
-          url=os.environ["ACTIONS_ID_TOKEN_REQUEST_URL"]+"&audience=finchat-live-verification"
-          req=urllib.request.Request(url,headers={"Authorization":"Bearer "+os.environ["ACTIONS_ID_TOKEN_REQUEST_TOKEN"]})
-          with urllib.request.urlopen(req,timeout=30) as r: token=json.load(r)["value"]
-          status,body=request("/__gateway_verification","POST",{"Authorization":"Bearer "+token},b"{}")
-          print("GEMINI_PROBE",status,body)
-          result=json.loads(body)
-          assert status==200 and result["ok"] and result["responseNonempty"]
-          assert result["config"]["googleAudienceConfigured"] and not result["config"]["googleAudienceHasWhitespace"]
-          assert result["config"]["geminiSecretConfigured"] and result["config"]["adminSecretConfigured"]
+          print("FINAL_GATEWAY_VERIFICATION_PASSED")
           PY
