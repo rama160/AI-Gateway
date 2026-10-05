@@ -1,16 +1,3 @@
-## Verified AI-Gateway GitHub CI — 5 Oktober 2026
-
-Akses tulis repo sudah berhasil setelah otorisasi diperbarui. Source Gateway 0.1.1 berada di branch codex/gateway-503-recovery, code commit a288204c7d0ece57494fc67e14aab680cc6726f5. Draft PR: https://github.com/rama160/AI-Gateway/pull/1 .
-
-- Recovery validation https://github.com/rama160/AI-Gateway/actions/runs/37304282683 — success: install, typecheck, lint, 17 tes/5 suite dan Wrangler dry-run (46.59 KiB).
-- Workflow CI asli https://github.com/rama160/AI-Gateway/actions/runs/37304318976 — success: install, typecheck, lint dan tes.
-- Autentikasi Google, kuota, rate limit, validasi, workflow CI/deploy asli dan binding KV dipertahankan. Main belum di-merge. Tidak ada deployment Cloudflare atau perubahan secret.
-- HTTP503 live belum dinyatakan selesai: deployment dan pengujian provider nyata tetap diperlukan. Catatan HTTP403/CI pending di bagian sebelumnya adalah riwayat yang sudah digantikan verifikasi ini. Follow-up ini hanya dokumentasi; runtime teruji tidak berubah.
-
-## GitHub recovery branch — 5 Oktober 2026
-
-Akses tulis repo rama160/AI-Gateway berhasil setelah otorisasi diperbarui. Perubahan dikirim ke branch codex/gateway-503-recovery; CI langsung pada repo Gateway sedang diverifikasi. Catatan penolakan HTTP403 di bawah adalah riwayat sebelum otorisasi diperbarui. Tidak ada deployment Cloudflare dalam sesi ini. Runtime dan lockfile berasal dari snapshot yang telah lulus 17 tes; hasil CI repo ini akan dicatat setelah selesai.
-
 # Mulai di sini — Windows PowerShell
 
 ## 1. Simpan konfigurasi yang sudah bekerja
@@ -70,4 +57,4 @@ Jika masih gagal, lihat docs/RECOVERY_503.md. Catat kode/status yang aman; janga
 
 Jalankan GITHUB.bat pada folder repo Gateway yang sudah ada; script mendeteksi mode update melalui .git. Skrip asli dipertahankan. Deployment melalui workflow GitHub memerlukan secrets Cloudflare dan konfigurasi produksi yang benar; lockfile yang dibutuhkan npm ci sudah disertakan.
 
-Sesi ini belum menulis repo rama160/AI-Gateway karena akses ditolak HTTP403. Upload manual atau berikan akses tulis repositori kepada integrasi GitHub yang digunakan sebelum meminta penerapan melalui ChatGPT lagi.
+Source 0.1.1 sudah ditulis ke branch codex/gateway-503-recovery dan Worker sudah diperbarui. Draft PR: https://github.com/rama160/AI-Gateway/pull/1 . Main belum di-merge. Ikuti langkah di atas hanya untuk perubahan/deployment selanjutnya; tidak perlu mengisi ulang secret. Bukti verifikasi live tersedia di docs/IMPLEMENTATION_STATUS.md.

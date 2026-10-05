@@ -1,22 +1,24 @@
-## Verified AI-Gateway GitHub CI — 5 Oktober 2026
+# Verifikasi live Gateway 0.1.1 — 5 Oktober 2026
 
-Akses tulis repo sudah berhasil setelah otorisasi diperbarui. Source Gateway 0.1.1 berada di branch codex/gateway-503-recovery, code commit a288204c7d0ece57494fc67e14aab680cc6726f5. Draft PR: https://github.com/rama160/AI-Gateway/pull/1 .
+Worker: https://finchat-ai-gateway.finchat-ai-gateway.workers.dev
+Branch: codex/gateway-503-recovery. Draft PR: https://github.com/rama160/AI-Gateway/pull/1 .
+Runtime teruji: a288204c7d0ece57494fc67e14aab680cc6726f5. Main belum di-merge.
 
-- Recovery validation https://github.com/rama160/AI-Gateway/actions/runs/37304282683 — success: install, typecheck, lint, 17 tes/5 suite dan Wrangler dry-run (46.59 KiB).
-- Workflow CI asli https://github.com/rama160/AI-Gateway/actions/runs/37304318976 — success: install, typecheck, lint dan tes.
-- Autentikasi Google, kuota, rate limit, validasi, workflow CI/deploy asli dan binding KV dipertahankan. Main belum di-merge. Tidak ada deployment Cloudflare atau perubahan secret.
-- HTTP503 live belum dinyatakan selesai: deployment dan pengujian provider nyata tetap diperlukan. Catatan HTTP403/CI pending di bagian sebelumnya adalah riwayat yang sudah digantikan verifikasi ini. Follow-up ini hanya dokumentasi; runtime teruji tidak berubah.
+## Hasil yang dibuktikan
 
-## GitHub recovery branch — 5 Oktober 2026
+- npm ci, typecheck, lint, 17 tes/5 suite dan Wrangler dry-run lulus secara lokal. Recovery CI: https://github.com/rama160/AI-Gateway/actions/runs/37316535973 . CI asli: https://github.com/rama160/AI-Gateway/actions/runs/37316544576 . Keduanya success.
+- Permintaan Gemini nyata memakai secret Worker yang sudah ada melalui routeChat: HTTP200, model gemini-3.5-flash-lite, jawaban tidak kosong, latency 622 ms. Bukti: https://github.com/rama160/AI-Gateway/actions/runs/37316212797/attempts/2 .
+- Pemeriksaan sementara dilindungi Google-independent GitHub OIDC (issuer, audience, repository, ref, workflow_ref, event); endpoint chat produksi tetap memakai Google JWT. Token dan nilai secret tidak dicetak atau disimpan ke GitHub.
+- GOOGLE_SERVER_CLIENT_ID. diperbaiki menjadi GOOGLE_SERVER_CLIENT_ID menggunakan inherit binding Cloudflare. Nilai secret dipertahankan tanpa dibaca. Saat runtime, audience valid, tanpa whitespace dan cocok dengan client ID bawaan FinChat. GEMINI_API_KEY dan ADMIN_TOKEN tersedia.
+- KV namespace asli, rate limit 20/menit, kuota 50/hari, batas ukuran dan timeout dipertahankan. Model health primary menunjukkan successes=1, failures=0, consecutiveFailures=0 setelah probe. Data transaksi dan penggunaan pengguna tidak dihapus.
+- Bundle final identik dengan hasil Wrangler dry-run. Version 552cf78b-6fff-4341-80d1-e1804fa95c7e, deployment 5bc5c9aa-b604-4500-b76e-e640e43ae5bb, traffic 100%.
+- Endpoint sementara sudah dihapus. Verifikasi bundle final: https://github.com/rama160/AI-Gateway/actions/runs/37316536289 — success. Health HTTP200/version0.1.1; chat tanpa token dan token invalid HTTP401; monitoring tanpa admin HTTP401; route tidak dikenal HTTP404; OPTIONS HTTP204; endpoint sementara HTTP404.
+- src/auth.ts, workflow ci.yml dan deploy.yml asli tidak berubah dibanding main. Tidak ada billing yang diaktifkan.
 
-Akses tulis repo rama160/AI-Gateway berhasil setelah otorisasi diperbarui. Perubahan dikirim ke branch codex/gateway-503-recovery; CI langsung pada repo Gateway sedang diverifikasi. Catatan penolakan HTTP403 di bawah adalah riwayat sebelum otorisasi diperbarui. Tidak ada deployment Cloudflare dalam sesi ini. Runtime dan lockfile berasal dari snapshot yang telah lulus 17 tes; hasil CI repo ini akan dicatat setelah selesai.
+## Batas bukti
 
-# Implementation status — 0.1.1
+Sukses provider di atas adalah panggilan nyata lewat fungsi routing yang sama, bukan sesi Google pengguna HP. Login Google positif pada /v1/ai/chat, sinkronisasi Drive dan alur APK di perangkat belum diuji ulang dalam verifikasi server ini. Kecocokan audience dengan nilai dart-define khusus build APK belum dibuktikan; yang diperiksa adalah client ID bawaan source. Fallback model dan kuota/rate limit diuji unit, belum diuji dengan menghabiskan kuota produksi. Tidak ada klaim bahwa semua alur aplikasi HP sudah lulus.
 
-Source: lengkap. Kontrak FinChat, Google JWT, rate limit, kuota dan workflow asli dipertahankan.
+## Operasional berikutnya
 
-CI snapshot: https://github.com/rama160/Finchat/actions/runs/37302216708 — npm ci/typecheck/lint/17 tes/5 suite/Worker dry-run lulus. Runtime dan tes paket ini identik dengan snapshot yang diuji. Panduan dokumentasi ditulis ulang setelah tes; tidak ada perubahan runtime tambahan.
-
-Penerapan repo AI-Gateway: belum, HTTP403 Resource not accessible by integration. Deployment Cloudflare: belum. Uji Gemini/Google live dan perangkat: belum. HTTP503 produksi belum dinyatakan selesai.
-
-Langkah berikutnya: ikuti MULAI_DI_SINI.md dengan konfigurasi Worker/KV/secret yang sudah ada, deploy, verifikasi health versi 0.1.1 dan permintaan AI autentikasi nyata, lalu catat hasil.
+Secret dan KV sudah tersedia; tidak perlu memasang ulang plugin atau mengisi ulang secret. Source wrangler.toml tetap template berisi placeholder KV; gunakan ID asli dari lingkungan Cloudflare untuk deployment mendatang. Pertahankan kontrak GET /health, POST /v1/ai/chat dan GET /v1/monitoring. Bila akun/model mengalami quota atau gangguan baru, gunakan kode error dan monitoring, tanpa otomatis mengaktifkan billing. Pengujian penerimaan berikutnya adalah permintaan AI dari APK dengan sesi Google yang valid.
