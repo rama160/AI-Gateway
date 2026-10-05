@@ -1,31 +1,21 @@
+## GitHub recovery branch — 5 Oktober 2026
+
+Akses tulis repo rama160/AI-Gateway berhasil setelah otorisasi diperbarui. Perubahan dikirim ke branch codex/gateway-503-recovery; CI langsung pada repo Gateway sedang diverifikasi. Catatan penolakan HTTP403 di bawah adalah riwayat sebelum otorisasi diperbarui. Tidak ada deployment Cloudflare dalam sesi ini. Runtime dan lockfile berasal dari snapshot yang telah lulus 17 tes; hasil CI repo ini akan dicatat setelah selesai.
+
 # Changelog
 
-## Unreleased — CI dependency install fix
-- Fixed an invalid `@cloudflare/workers-types` version that caused npm `ETARGET` during GitHub Actions dependency installation.
-- Pinned `@cloudflare/workers-types` to the published `5.20260928.1` release.
-- Fixed GitHub Actions failure caused by `setup-node` npm caching requiring a lock file that was not present in the repository.
-- CI now installs dependencies with `npm install --no-audit --no-fund` and does not request npm cache metadata.
-- No application/runtime source code or architecture was changed.
+## 0.1.1 — 5 Oktober 2026
 
-## 0.1.0 - Gateway foundation
+- Memperbarui model primary/fallback; menghapus fallback Gemini 2.0.
+- Menyesuaikan thinking model dan mengecualikan thought dari jawaban.
+- Memperjelas konfigurasi provider kosong dan HTTP429 upstream.
+- Menghormati cooldown yang dikonfigurasi dan mereset kegagalan berurutan setelah sukses.
+- Menambahkan tes Gemini, routing dan monitoring: 17 tes/5 suite lulus di snapshot CI.
+- Menyertakan lockfile yang diuji melalui npm ci; pin Wrangler 4.147.0 dan Workers Types 5.20261005.1.
+- Menulis ulang README, AI start here dan panduan Windows untuk paket Gateway terpisah.
+- Mempertahankan autentikasi, kuota, rate limit, kontrak API dan workflow asli.
+- Belum deploy; akses tulis repo AI-Gateway ditolak HTTP403.
 
-- Added separate FinChat AI Gateway repository.
-- Added `/health` endpoint.
-- Added authenticated `/v1/ai/chat` endpoint.
-- Added Google ID-token verification.
-- Added Gemini provider adapter.
-- Added primary/fallback model routing.
-- Added transient retry with bounded backoff.
-- Added model cooldown and health counters.
-- Added per-user rate limiting and free daily quota using Cloudflare KV.
-- Added protected monitoring endpoint.
-- Added request validation and size protection.
-- Added GitHub Actions CI.
-- Added Windows upload and update BAT scripts.
-- Added setup, architecture, roadmap, phase, contract, status, and audit documentation.
+## Riwayat sebelumnya
 
-Payment and premium entitlements remain disabled.
-
-
-## Unreleased
-- Unified GitHub synchronization into `GITHUB.bat` with automatic initial-upload/update detection.
+Lihat commit upstream rama160/AI-Gateway b7769af739b1550667c5a75e524d3d62e8f8a324 untuk baseline 0.1.0 dan perbaikan awal CI.

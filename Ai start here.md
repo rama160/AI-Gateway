@@ -1,72 +1,36 @@
-## Latest CI blocker fixed
+## GitHub recovery branch — 5 Oktober 2026
 
-The next CI run exposed a second dependency issue: `@cloudflare/workers-types@^4.20260920.0` did not resolve because that requested version does not exist in the npm registry. The dependency is now pinned to the published `5.20260928.1` release. This is a dependency/configuration fix only; runtime source code is unchanged.
+Akses tulis repo rama160/AI-Gateway berhasil setelah otorisasi diperbarui. Perubahan dikirim ke branch codex/gateway-503-recovery; CI langsung pada repo Gateway sedang diverifikasi. Catatan penolakan HTTP403 di bawah adalah riwayat sebelum otorisasi diperbarui. Tidak ada deployment Cloudflare dalam sesi ini. Runtime dan lockfile berasal dari snapshot yang telah lulus 17 tes; hasil CI repo ini akan dicatat setelah selesai.
 
+# AI START HERE — FinChat AI Gateway 0.1.1
 
-GitHub Actions previously stopped at `actions/setup-node@v4` because `cache: npm` requires `package-lock.json`, `npm-shrinkwrap.json`, or `yarn.lock`, while this Gateway repository intentionally did not yet contain a lock file.
+## Tujuan dan batas perubahan
 
-The CI workflow was minimally changed to remove npm caching and use `npm install --no-audit --no-fund`. Runtime source code was not changed.
+Gateway terpisah dari aplikasi Flutter. API key Gemini hanya berada di secret Cloudflare. FinChat memakai Google ID token, bukan API key pengguna. Pertahankan kode, kontrak API, autentikasi, pembatasan penggunaan dan workflow yang sudah berjalan. Jangan otomatis mengaktifkan billing berbayar.
 
-**Verification:** The published npm registry was checked for the Workers Types release. GitHub Actions still needs to be run after pushing this package. Local npm installation was attempted but did not complete within the local command timeout.
+Baca berurutan: README.md, docs/AI_GATEWAY_CONTRACT.md, docs/ARCHITECTURE.md, docs/IMPLEMENTATION_STATUS.md, docs/ROADMAP_AUDIT.md, docs/RECOVERY_503.md. Paket ini lengkap dan berdiri sendiri; jangan digabung ke root repositori Flutter.
 
-# AI START HERE — FinChat AI Gateway
+## Perbaikan yang sudah dibuat
 
-## Project role
+- Model utama gemini-3.5-flash-lite, fallback pertama gemini-3.1-flash-lite, fallback kedua gemini-2.5-flash-lite untuk akun yang masih memiliki akses legacy. Konfigurasi dilakukan di Worker, tanpa perubahan endpoint aplikasi.
+- Parameter thinking mengikuti keluarga model. Bagian thought tidak ditampilkan sebagai jawaban.
+- Retry terbatas dan fallback tetap berjalan. Nama model dipangkas dan duplikat dihapus.
+- Secret provider kosong menghasilkan GATEWAY_NOT_CONFIGURED. Jika seluruh percobaan gagal karena kuota provider, hasil tetap HTTP429; bukan disamarkan menjadi HTTP503.
+- Kesehatan model mencatat status upstream, memakai kegagalan berurutan, mereset hitungan berurutan saat berhasil dan mengikuti MODEL_COOLDOWN_SECONDS.
+- package-lock.json disertakan. Wrangler dan Workers Types diselaraskan; npm ci teruji.
 
-This repository is the backend AI Gateway for the FinChat Android application. It is intentionally separate from the Android repository.
+## Kontrak tetap
 
-## Non-negotiable rules
+GET /health; POST /v1/ai/chat; GET /v1/monitoring dengan X-Admin-Token. Request chat: messages berisi role/text. Respons sukses: requestId/model/text/latencyMs. Autentikasi Google memvalidasi issuer, audience dan sub. Rate limit 20/menit dan kuota gratis 50/hari per pengguna tetap dipertahankan.
 
-1. Never put `GEMINI_API_KEY` in the Android app or commit it to Git.
-2. Never trust a user ID sent by the Android client; identify users from a verified Google ID token.
-3. Keep model selection and provider credentials on the gateway.
-4. Do not enable paid subscription entitlements until server-side subscription/payment verification exists.
-5. Do not delete production data to fix a bug.
-6. Do not weaken tests to make CI pass.
-7. Do not claim deployment or production verification until it has actually been performed.
-8. Keep Android and gateway repositories separate.
+## Bukti verifikasi
 
-## Current architecture
+Kode runtime dan tes dalam paket ini identik dengan snapshot yang lulus GitHub CI https://github.com/rama160/Finchat/actions/runs/37302216708 pada 5 Oktober 2026: npm ci, typecheck, lint, 17 tes/5 suite, dan Wrangler deploy --dry-run. Lockfile diambil dari run yang sama. Dokumentasi paket ini ditulis ulang setelah verifikasi; tidak ada perubahan kode runtime sesudahnya.
 
-`FinChat Android -> HTTPS -> Gateway -> Model Router -> Gemini`
+Penulisan rama160/AI-Gateway ditolak HTTP403 Resource not accessible by integration. Repo tersebut dan Worker belum diperbarui oleh sesi ini. Jangan menyatakan HTTP503 produksi selesai sebelum deployment dan permintaan Google/Gemini nyata berhasil. GET /health saja tidak membuktikan provider AI berhasil.
 
-## Current stages
+## Deployment dan pekerjaan berikutnya
 
-- Health endpoint: implemented.
-- AI chat: implemented.
-- Google authentication: implemented.
-- Rate limit/quota: implemented with KV.
-- Model fallback/retry/cooldown: implemented.
-- Monitoring endpoint: implemented.
-- Android integration: not yet connected.
-- Production deployment: not yet verified.
+Gunakan wrangler.toml lokal yang sudah memiliki ID KV asli, nama Worker dan konfigurasi akun. Jangan menggantinya dengan placeholder dari paket. Secret Gemini, Google client ID dan admin token yang sudah berada di Worker tidak perlu diisi ulang. Ikuti MULAI_DI_SINI.md.
 
-## Current commands
-
-- `npm install`
-- `npm run check`
-- `npm run dev`
-- `npm run deploy`
-- `npm run tail`
-
-## Before production
-
-Create Cloudflare KV namespaces, configure Google OAuth, set production secrets, verify Gemini quota/model availability, run GitHub CI, deploy, test `/health`, then perform authenticated end-to-end testing from the Android app.
-
-## Change protocol
-
-For every meaningful change update:
-
-- `Ai start here.md`
-- `README.md`
-- `docs/PHASES.md`
-- `docs/ROADMAP_AUDIT.md`
-- `docs/IMPLEMENTATION_STATUS.md`
-- `CHANGELOG.md`
-- relevant tests and contracts
-
-When changing a file, provide the full affected file in delivery rather than a partial diff.
-
-
-### GitHub Sync
-Gunakan `GITHUB.bat` untuk upload awal maupun update berikutnya. File ini sengaja disatukan agar pengguna tidak perlu memilih script upload/update secara manual.
+Setelah deploy, verifikasi versi health 0.1.1, pertanyaan lokal di aplikasi, fallback AI, HTTP401 tanpa token, kuota, monitoring dan kamera/attach di HP. Catat hasil nyata pada IMPLEMENTATION_STATUS.md dan CHANGELOG.md. Jangan menulis token atau key ke repo, APK, screenshot atau log.

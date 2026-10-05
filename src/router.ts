@@ -8,7 +8,9 @@ const RETRYABLE = new Set([408, 429, 500, 502, 503, 504]);
 
 export async function routeChat(env: Env, request: ChatRequest): Promise<ModelResult> {
   const candidates = models(env);
+  if (candidates.length === 0) throw new HttpError(503, 'No AI model is configured.', 'GATEWAY_NOT_CONFIGURED');
   const errors: string[] = [];
+  const statuses: number[] = [];
 
   for (const model of candidates) {
     if (await isCoolingDown(env, model)) continue;
@@ -19,13 +21,19 @@ export async function routeChat(env: Env, request: ChatRequest): Promise<ModelRe
         return result;
       } catch (error) {
         const status = error instanceof HttpError ? error.status : 500;
+        if (error instanceof HttpError && error.code === 'GATEWAY_NOT_CONFIGURED') throw error;
+        statuses.push(status);
         errors.push(`${model}:${status}`);
-        await markFailure(env, model);
+        await markFailure(env, model, status);
         if (!RETRYABLE.has(status) || attempt === 1) break;
         await new Promise((resolve) => setTimeout(resolve, 250 * 2 ** attempt));
       }
     }
   }
 
+  if (statuses.length > 0 && statuses.every((status) => status === 429)) {
+    throw new HttpError(429, 'Provider quota is exhausted for configured models.', 'UPSTREAM_QUOTA_EXCEEDED');
+  }
   throw new HttpError(503, `All configured AI models are temporarily unavailable. ${errors.join(', ')}`, 'ALL_MODELS_UNAVAILABLE');
 }
+

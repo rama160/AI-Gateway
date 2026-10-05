@@ -21,7 +21,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204 });
 
   if (url.pathname === '/health' && request.method === 'GET') {
-    return json({ ok: true, service: 'finchat-ai-gateway', version: '0.1.0', timestamp: new Date().toISOString() });
+    return json({ ok: true, service: 'finchat-ai-gateway', version: '0.1.1', timestamp: new Date().toISOString() });
   }
 
   if (url.pathname === '/v1/monitoring' && request.method === 'GET') {
@@ -52,3 +52,4 @@ export default {
     }
   },
 };
+

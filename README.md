@@ -1,63 +1,43 @@
-# FinChat AI Gateway
+## GitHub recovery branch — 5 Oktober 2026
 
-Backend gateway for FinChat AI. The gateway keeps Gemini credentials off the Android APK and provides Google ID-token authentication, per-user rate limiting, free-tier quota, model fallback, retries, model health tracking, and monitoring.
+Akses tulis repo rama160/AI-Gateway berhasil setelah otorisasi diperbarui. Perubahan dikirim ke branch codex/gateway-503-recovery; CI langsung pada repo Gateway sedang diverifikasi. Catatan penolakan HTTP403 di bawah adalah riwayat sebelum otorisasi diperbarui. Tidak ada deployment Cloudflare dalam sesi ini. Runtime dan lockfile berasal dari snapshot yang telah lulus 17 tes; hasil CI repo ini akan dicatat setelah selesai.
 
-## Architecture
+# FinChat AI Gateway 0.1.1
 
-`FinChat Android -> HTTPS -> FinChat AI Gateway -> Gemini`
+Backend Cloudflare Workers untuk FinChat: autentikasi Google, akses Gemini melalui secret server, fallback model, rate limit, kuota gratis dan monitoring. Paket source lengkap ini terpisah dari aplikasi Flutter.
 
-The Android application should never contain `GEMINI_API_KEY`.
+Mulai dari **MULAI_DI_SINI.md** untuk langkah Windows PowerShell. Untuk AI/developer berikutnya, baca **Ai start here.md**.
 
-## Current implementation
+## Isi utama
 
-- `GET /health`
-- `POST /v1/ai/chat`
-- `GET /v1/monitoring` protected by `X-Admin-Token`
-- Google ID-token verification using the Web/Server Client ID
-- Per-user minute rate limit using Cloudflare KV
-- Free daily request quota using Cloudflare KV
-- Primary + two fallback models
-- Retry/backoff for transient model errors
-- Model cooldown after repeated failures
-- Basic model health metrics
-- Request validation and response-size protection
-- GitHub Actions CI
-- Windows BAT scripts for upload/update
+- src/: Worker, autentikasi, Gemini, routing, kuota, rate limit, monitoring dan validasi.
+- tests/: 17 tes yang lulus pada snapshot CI.
+- package.json dan package-lock.json: dependensi yang cocok dengan npm ci teruji.
+- wrangler.toml: template konfigurasi; isi ID KV dengan konfigurasi lokal yang sudah ada sebelum deploy.
+- .github/workflows/: CI/deployment asli dipertahankan; workflow tambahan hanya untuk branch recovery.
+- GITHUB.bat: skrip upload/update yang sudah ada, dipertahankan.
+- docs/: kontrak, arsitektur, status, roadmap dan panduan pemulihan HTTP503.
 
-## Local setup
+## Windows
 
-1. Install Node.js 22+.
-2. Run `npm install`.
-3. Copy `.dev.vars.example` to `.dev.vars` and fill secrets.
-4. Run `npm run check`.
-5. Run `npm run dev`.
+```powershell
+npm.cmd ci --no-audit --no-fund
+npm.cmd run typecheck
+npm.cmd run lint
+npm.cmd test
+npx.cmd wrangler deploy --dry-run
+```
 
-For Cloudflare deployment, create the three KV namespaces and replace their IDs in `wrangler.toml`. Set production secrets with `wrangler secret put`.
+Setelah konfigurasi produksi benar dan pemeriksaan berhasil:
 
-## Production secrets
+```powershell
+npx.cmd wrangler deploy
+```
 
-- `GOOGLE_SERVER_CLIENT_ID`
-- `GEMINI_API_KEY`
-- `ADMIN_TOKEN`
+Secret yang sudah disimpan di Cloudflare tetap digunakan. Mengganti source tidak memerlukan memasukkan API key lagi. Jangan overwrite wrangler.toml lokal yang berisi ID KV asli dengan template placeholder.
 
-Do not commit `.dev.vars`.
+## Hasil pengujian dan status penerapan
 
-## GitHub
+GitHub CI: https://github.com/rama160/Finchat/actions/runs/37302216708 — npm ci, typecheck, lint, 17 tes dan dry-run Worker lulus. Source runtime paket ini identik dengan snapshot teruji.
 
-The repository includes `.github/workflows/ci.yml`. Every push/PR runs typecheck, lint, and tests.
-
-See `docs/SETUP.md`, `docs/ARCHITECTURE.md`, and `docs/ROADMAP.md` for the staged rollout.
-
-
-## GitHub Sync
-
-Gunakan satu file `GITHUB.bat`. Script akan otomatis mendeteksi apakah folder ini sudah merupakan Git repository. Jika belum, script menjalankan mode upload awal; jika sudah, script menjalankan mode update, pull --rebase, commit perubahan, dan push. Jika terjadi konflik Git, script berhenti agar konflik diselesaikan manual.
-## CI note
-
-GitHub Actions installs Node dependencies with `npm install --no-audit --no-fund`. The CI workflow does not use npm dependency caching because the repository does not currently commit a lock file.
-
-
-
-## CI dependency baseline
-
-The repository currently uses `npm install --no-audit --no-fund` in GitHub Actions because no npm lock file is committed. `@cloudflare/workers-types` is pinned to the published `5.20260928.1` release.
+Paket ini belum diterapkan ke rama160/AI-Gateway maupun Worker Cloudflare. Akses tulis repo ditolak HTTP403; HTTP503 pada layanan live masih perlu dibuktikan pulih setelah deploy. Health endpoint saja tidak membuktikan koneksi Gemini berhasil.

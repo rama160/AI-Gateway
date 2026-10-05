@@ -1,8 +1,11 @@
 import type { Env } from './types';
+import { numberEnv } from './config';
 
 export type ModelHealth = {
   failures: number;
   successes: number;
+  consecutiveFailures?: number;
+  lastFailureStatus?: number;
   lastFailureAt?: string;
   cooldownUntil?: number;
 };
@@ -18,15 +21,19 @@ export async function markSuccess(env: Env, model: string): Promise<void> {
   await env.HEALTH_KV.put(key(model), JSON.stringify({
     failures: current.failures,
     successes: current.successes + 1,
+    consecutiveFailures: 0,
   }), { expirationTtl: 86400 });
 }
 
-export async function markFailure(env: Env, model: string): Promise<void> {
+export async function markFailure(env: Env, model: string, status?: number): Promise<void> {
   const current = await getHealth(env, model);
   const failures = current.failures + 1;
-  const cooldown = failures >= 2 ? Date.now() + 60_000 : undefined;
+  const consecutiveFailures = (current.consecutiveFailures ?? 0) + 1;
+  const cooldown = consecutiveFailures >= 2 ? Date.now() + numberEnv(env.MODEL_COOLDOWN_SECONDS, 60) * 1000 : undefined;
   await env.HEALTH_KV.put(key(model), JSON.stringify({
     failures,
+    consecutiveFailures,
+    lastFailureStatus: status,
     successes: current.successes,
     lastFailureAt: new Date().toISOString(),
     cooldownUntil: cooldown,
@@ -43,3 +50,4 @@ export async function monitoringSnapshot(env: Env, models: string[]): Promise<Re
   for (const model of models) result[model] = await getHealth(env, model);
   return result;
 }
+

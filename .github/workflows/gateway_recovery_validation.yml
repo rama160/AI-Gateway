@@ -1,0 +1,23 @@
+name: Gateway Recovery Validation
+
+on:
+  push:
+    branches: [codex/gateway-503-recovery]
+  pull_request:
+    branches: [codex/gateway-503-recovery]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+
+      - run: npx wrangler deploy --dry-run --outdir /tmp/gateway-dry-run
