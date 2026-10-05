@@ -1,4 +1,5 @@
 name: Gateway Live Verification
+# Verify protected provider probe after binding recovery.
 on:
   push:
     branches: [codex/gateway-503-recovery]
