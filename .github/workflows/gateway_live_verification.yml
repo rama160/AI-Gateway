@@ -1,0 +1,39 @@
+name: Gateway Live Verification
+# Verify protected provider probe after binding recovery.
+on:
+  push:
+    branches: [codex/gateway-503-recovery]
+    paths: [.github/workflows/gateway_live_verification.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check final live health, authentication and cleanup
+        env:
+          GATEWAY_URL: https://finchat-ai-gateway.finchat-ai-gateway.workers.dev
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          base = os.environ["GATEWAY_URL"]
+          def request(path, method="GET", headers=None, body=None):
+              headers={"User-Agent":"FinChat-Gateway-Verification/0.1.1", **(headers or {})}
+              req=urllib.request.Request(base+path, data=body, headers=headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=75) as r: return r.status, r.read().decode()
+              except urllib.error.HTTPError as e: return e.code, e.read().decode()
+          status, body=request("/health"); print("HEALTH", status, body)
+          assert status==200 and json.loads(body)["version"]=="0.1.1"
+          for path,method,headers,expected in [
+              ("/v1/ai/chat","POST",{},401),
+              ("/v1/ai/chat","POST",{"Authorization":"Bearer invalid"},401),
+              ("/v1/monitoring","GET",{},401),
+              ("/unknown","GET",{},404),
+              ("/v1/ai/chat","OPTIONS",{},204),
+              ("/__gateway_verification","POST",{},404),
+          ]:
+              status,body=request(path,method,headers,b"{}" if method=="POST" else None)
+              print("CHECK",path,method,status); assert status==expected,(path,status,body)
+          print("FINAL_GATEWAY_VERIFICATION_PASSED")
+          PY

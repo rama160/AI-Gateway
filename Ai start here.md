@@ -1,72 +1,19 @@
-## Latest CI blocker fixed
+# AI START HERE — FinChat AI Gateway 0.1.1
 
-The next CI run exposed a second dependency issue: `@cloudflare/workers-types@^4.20260920.0` did not resolve because that requested version does not exist in the npm registry. The dependency is now pinned to the published `5.20260928.1` release. This is a dependency/configuration fix only; runtime source code is unchanged.
+Gateway terpisah dari Flutter; API key Gemini hanya berada di secret Cloudflare. Pertahankan kode, kontrak API, autentikasi, kuota dan workflow yang sudah bekerja. Jangan mengaktifkan billing secara otomatis.
 
+Baca README.md, docs/AI_GATEWAY_CONTRACT.md, docs/ARCHITECTURE.md, docs/IMPLEMENTATION_STATUS.md, docs/ROADMAP_AUDIT.md dan docs/RECOVERY_503.md.
 
-GitHub Actions previously stopped at `actions/setup-node@v4` because `cache: npm` requires `package-lock.json`, `npm-shrinkwrap.json`, or `yarn.lock`, while this Gateway repository intentionally did not yet contain a lock file.
+## Status saat ini
 
-The CI workflow was minimally changed to remove npm caching and use `npm install --no-audit --no-fund`. Runtime source code was not changed.
+Gateway 0.1.1 sudah diterapkan pada Worker yang sama. Gemini primary nyata berhasil HTTP200/622 ms; verifikasi final health/auth/cleanup lulus. Binding Google dengan titik di akhir sudah diperbaiki tanpa mengganti nilai secret. Endpoint pemeriksaan sementara sudah dihapus. Bukti, version/deployment ID dan batas verifikasi terdapat di docs/IMPLEMENTATION_STATUS.md.
 
-**Verification:** The published npm registry was checked for the Workers Types release. GitHub Actions still needs to be run after pushing this package. Local npm installation was attempted but did not complete within the local command timeout.
+Branch codex/gateway-503-recovery dan draft PR #1 tersedia di GitHub; main belum di-merge. Runtime commit a288204c7d0ece57494fc67e14aab680cc6726f5. src/auth.ts serta workflow CI/deploy asli tetap sama. Jangan mengganti KV asli dengan placeholder wrangler.toml dari repository.
 
-# AI START HERE — FinChat AI Gateway
+## Perbaikan 0.1.1
 
-## Project role
+Model: gemini-3.5-flash-lite → gemini-3.1-flash-lite → gemini-2.5-flash-lite. Parameter thinking mengikuti keluarga model dan thought dikeluarkan dari jawaban. Retry terbatas, deduplikasi model, konfigurasi provider kosong, HTTP429 upstream, consecutiveFailures dan cooldown sudah diuji. Lockfile teruji; Wrangler 4.147.0 dan Workers Types 5.20261005.1.
 
-This repository is the backend AI Gateway for the FinChat Android application. It is intentionally separate from the Android repository.
+## Verifikasi berikutnya
 
-## Non-negotiable rules
-
-1. Never put `GEMINI_API_KEY` in the Android app or commit it to Git.
-2. Never trust a user ID sent by the Android client; identify users from a verified Google ID token.
-3. Keep model selection and provider credentials on the gateway.
-4. Do not enable paid subscription entitlements until server-side subscription/payment verification exists.
-5. Do not delete production data to fix a bug.
-6. Do not weaken tests to make CI pass.
-7. Do not claim deployment or production verification until it has actually been performed.
-8. Keep Android and gateway repositories separate.
-
-## Current architecture
-
-`FinChat Android -> HTTPS -> Gateway -> Model Router -> Gemini`
-
-## Current stages
-
-- Health endpoint: implemented.
-- AI chat: implemented.
-- Google authentication: implemented.
-- Rate limit/quota: implemented with KV.
-- Model fallback/retry/cooldown: implemented.
-- Monitoring endpoint: implemented.
-- Android integration: not yet connected.
-- Production deployment: not yet verified.
-
-## Current commands
-
-- `npm install`
-- `npm run check`
-- `npm run dev`
-- `npm run deploy`
-- `npm run tail`
-
-## Before production
-
-Create Cloudflare KV namespaces, configure Google OAuth, set production secrets, verify Gemini quota/model availability, run GitHub CI, deploy, test `/health`, then perform authenticated end-to-end testing from the Android app.
-
-## Change protocol
-
-For every meaningful change update:
-
-- `Ai start here.md`
-- `README.md`
-- `docs/PHASES.md`
-- `docs/ROADMAP_AUDIT.md`
-- `docs/IMPLEMENTATION_STATUS.md`
-- `CHANGELOG.md`
-- relevant tests and contracts
-
-When changing a file, provide the full affected file in delivery rather than a partial diff.
-
-
-### GitHub Sync
-Gunakan `GITHUB.bat` untuk upload awal maupun update berikutnya. File ini sengaja disatukan agar pengguna tidak perlu memilih script upload/update secara manual.
+Server sudah diperiksa. Penerimaan APK dengan Google ID token pengguna, Drive dan kamera/attach pada HP masih memerlukan pengujian perangkat. Jangan menyebut pemeriksaan provider sebagai keberhasilan seluruh alur aplikasi. Jangan menulis token atau key ke repo, APK, screenshot atau log.
