@@ -2,7 +2,7 @@ name: Gateway CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, spenva-subscription-backend]
   pull_request:
     branches: [main, master]
 
