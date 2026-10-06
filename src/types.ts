@@ -10,30 +10,18 @@ export type Env = {
   MAX_REQUEST_BYTES?: string;
   REQUEST_TIMEOUT_MS?: string;
   MODEL_COOLDOWN_SECONDS?: string;
+  ANDROID_PACKAGE_NAME?: string;
+  RTDN_AUDIENCE?: string;
+  GOOGLE_PLAY_SERVICE_ACCOUNT_EMAIL?: string;
+  GOOGLE_PLAY_SERVICE_ACCOUNT_PRIVATE_KEY?: string;
   RATE_LIMIT_KV: KVNamespace;
   USAGE_KV: KVNamespace;
   HEALTH_KV: KVNamespace;
+  ENTITLEMENT_KV: KVNamespace;
+  IDEMPOTENCY_KV: KVNamespace;
 };
 
-export type AuthenticatedUser = {
-  subject: string;
-  email?: string;
-  name?: string;
-};
-
-export type ChatMessage = {
-  role: 'user' | 'model';
-  text: string;
-};
-
-export type ChatRequest = {
-  messages: ChatMessage[];
-  temperature?: number;
-  maxOutputTokens?: number;
-};
-
-export type ModelResult = {
-  model: string;
-  text: string;
-  latencyMs: number;
-};
+export type AuthenticatedUser = { subject: string; email?: string; name?: string; };
+export type ChatMessage = { role: 'user' | 'model'; text: string; };
+export type ChatRequest = { messages: ChatMessage[]; temperature?: number; maxOutputTokens?: number; };
+export type ModelResult = { model: string; text: string; latencyMs: number; };
