@@ -30,6 +30,47 @@ async function handle(request: Request, env: Env): Promise<Response> {
     return json({ ok: true, models: await monitoringSnapshot(env, models(env)), timestamp: new Date().toISOString() });
   }
 
+  // Access is keyed to a verified Google subject, never a client build flag.
+  // Admin changes require the existing ADMIN_TOKEN; no tester email is trusted.
+  if (url.pathname === '/v1/testing-access' && request.method === 'POST') {
+    if (!env.ADMIN_TOKEN || request.headers.get('X-Admin-Token') !== env.ADMIN_TOKEN) {
+      throw new HttpError(401, 'Admin authentication required.', 'ADMIN_REQUIRED');
+    }
+    const body = await request.json() as { subject?: unknown; enabled?: unknown };
+    if (typeof body.subject !== 'string' || !/^[0-9]{5,32}$/.test(body.subject) ||
+        typeof body.enabled !== 'boolean') {
+      throw new HttpError(400, 'Valid Google subject and enabled flag required.', 'INVALID_INPUT');
+    }
+    const key = `spenva:testing:${body.subject}`;
+    if (body.enabled) await env.USAGE_KV.put(key, '1');
+    else await env.USAGE_KV.delete(key);
+    return json({ ok: true, enabled: body.enabled });
+  }
+
+  if (url.pathname.startsWith('/v1/quota/') && request.method === 'POST') {
+    const user = await authenticate(request, env);
+    const action = url.pathname.slice('/v1/quota/'.length);
+    const enabled = await env.USAGE_KV.get(`spenva:testing:${user.subject}`) === '1';
+    if (action === 'state') {
+      return json({ tier: 'free', entitlement: null,
+        testingAccess: { enabled, localInput: enabled } });
+    }
+    if (action !== 'reserve' && action !== 'settle') {
+      throw new HttpError(404, 'Route not found.', 'NOT_FOUND');
+    }
+    const body = await request.json() as { resource?: unknown; operationId?: unknown };
+    if (typeof body.operationId !== 'string' ||
+        !/^[a-zA-Z0-9_-]{8,120}$/.test(body.operationId)) {
+      throw new HttpError(400, 'Valid operationId required.', 'INVALID_INPUT');
+    }
+    // Non-test quotas and purchases are intentionally NOT emulated.
+    // A real ledger is required before general production access.
+    if (action === 'reserve') {
+      throw new HttpError(503, 'Production quota service is not configured.', 'QUOTA_NOT_CONFIGURED');
+    }
+    return json({ ok: true });
+  }
+
   if (url.pathname === '/v1/ai/chat' && request.method === 'POST') {
     const user = await authenticate(request, env);
     await enforceRateLimit(env, user.subject);
